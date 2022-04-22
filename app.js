@@ -1,6 +1,7 @@
 require('dotenv').config();
 const cors = require('cors')
 const express = require('express');
+const fs = require('fs');
 const app = express();
 const { PORT, MONGO_URI } = process.env;
 app.use(express.static('public'));
@@ -8,8 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors()); 
 const APP = './app/routes'
-// const nodes = ['admin','basic','board','game','todo','user']
-const nodes = ['basic']
+const nodes = ['board', 'user']
 for(const leaf of nodes){
   require(`${APP}/${leaf}.route`)({url:`/api/${leaf}`,app})
 }
@@ -18,25 +18,23 @@ const corsOptions = {
   origin: 'http://localhost:3000',
   optionsSuccessStatus: 200 
 }
-// const db = require('./app/models/index')
-// db.mongoose
-//   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then(() => {
-//     console.log(' ### 몽고DB 연결 성공 ### ')
-//   })
-//   .catch(err => { console.log(' 몽고DB와 연결 실패', err)
-//         process.exit();
-// });
 app.listen(PORT, () => {
   console.log('***************** ***************** *****************')
-  console.log('********** 서버가 정상적으로 실행되고 있습니다 *********')
+  console.log('********** The server is running normally. *********')
   console.log('***************** ***************** *****************')
 })
 app.get('/', (req, res) => {
-  res.json({"현재 시간 : ":new Date().toLocaleString()})
+  res.send("Hello!");
 })
 app.get('/api/now', cors(corsOptions),(req, res) => {
   res.json({"now":new Date().toLocaleString()})
 })
 
-
+app.get("/ft/:startIndex", cors(corsOptions) ,(req, res) => {
+  fs.readFile("./contents/csv/Korea_Development_Bank_financial_terms_2015.csv", "utf-8", (err, data) => {
+      let FTList = data.split("\r\n");
+      const startIndex = parseInt(req.params.startIndex)
+      const endIndex = startIndex + 20;
+      res.json(FTList.slice(startIndex, endIndex));
+  });
+});
